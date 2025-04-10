@@ -1,4 +1,4 @@
-# work
+# 项目 书城
 - **后端**：SpringBoot 2.7.10 + MySQL + Redis + Spring Security
 - **前端**：Vue 3 + Element Plus
 - ### 1. 用户管理模块 (4.11-4.13)
