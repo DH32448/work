@@ -47,7 +47,9 @@ router.beforeEach((to, from, next) => {
       // 验证 token 是否过期
       try {
         const tokenData = JSON.parse(atob(token.split('.')[1]));
-        if (tokenData.exp < Date.now() / 1000) {
+        const currentTime = Date.now() / 1000;
+        
+        if (tokenData.exp < currentTime) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           ElMessage.error('登录已过期，请重新登录');
@@ -56,6 +58,7 @@ router.beforeEach((to, from, next) => {
           next();
         }
       } catch (error) {
+        console.error('Token验证失败:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         ElMessage.error('登录信息无效，请重新登录');

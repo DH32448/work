@@ -32,13 +32,34 @@ export const login = async (username, password) => {
     );
     
     if (user) {
-      // 模拟返回token
-      const token = btoa(JSON.stringify({
+      // 生成有效的token
+      // 构造header部分（通常包含算法和token类型）
+      const header = {
+        alg: 'HS256',
+        typ: 'JWT'
+      };
+      
+      // 当前时间（以秒为单位）
+      const now = Math.floor(Date.now() / 1000);
+      
+      // 构造payload部分
+      const payload = {
         id: user.id,
         username: user.username,
         role: user.role,
-        exp: Date.now() + 24 * 60 * 60 * 1000 // 24小时后过期
-      }));
+        iat: now,  // 签发时间
+        exp: now + 24 * 60 * 60  // 24小时后过期（以秒为单位）
+      };
+      
+      // 编码header和payload
+      const encodedHeader = btoa(JSON.stringify(header));
+      const encodedPayload = btoa(JSON.stringify(payload));
+      
+      // 简化的签名（实际生产环境应该使用加密库生成真正的签名）
+      const signature = btoa('signature');
+      
+      // 组合token（格式为 header.payload.signature）
+      const token = `${encodedHeader}.${encodedPayload}.${signature}`;
       
       return {
         token,
@@ -81,26 +102,46 @@ export const logout = async () => {
 export const checkAuth = async () => {
   try {
     const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('未登录');
+    const userString = localStorage.getItem('user');
+    
+    if (!token || !userString) {
+      return {
+        isAuthenticated: false,
+        user: null
+      };
     }
     
-    // 解析token
-    const tokenData = JSON.parse(atob(token));
-    
-    // 检查是否过期
-    if (tokenData.exp < Date.now()) {
-      throw new Error('登录已过期');
-    }
-    
-    return {
-      isAuthenticated: true,
-      user: {
-        id: tokenData.id,
-        username: tokenData.username,
-        role: tokenData.role
+    try {
+      // 解析token
+      const tokenData = JSON.parse(atob(token.split('.')[1]));
+      
+      // 检查是否过期
+      if (tokenData.exp < Date.now() / 1000) {
+        // 过期了，清除token
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return {
+          isAuthenticated: false,
+          user: null
+        };
       }
-    };
+      
+      // token有效，获取用户信息
+      const user = JSON.parse(userString);
+      
+      return {
+        isAuthenticated: true,
+        user
+      };
+    } catch (error) {
+      // token格式不正确，清除token
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return {
+        isAuthenticated: false,
+        user: null
+      };
+    }
   } catch (error) {
     console.error('验证登录状态失败:', error);
     return {

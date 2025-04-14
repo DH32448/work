@@ -112,7 +112,10 @@ const handleLogin = async () => {
           
           // 延迟保存数据和跳转，以便显示动画
           setTimeout(() => {
-            localStorage.setItem('token', response.data.data);
+            const token = response.data.data;
+            
+            // 确保token格式正确，可以被后续认证流程正确解析
+            localStorage.setItem('token', token);
             localStorage.setItem('user', JSON.stringify({
               username: formData.value.username
             }));

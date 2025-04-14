@@ -220,11 +220,6 @@ const checkLoginStatus = async () => {
   const { isAuthenticated: authStatus, user } = await checkAuth();
   isAuthenticated.value = authStatus;
   userInfo.value = user;
-  
-  // 如果未登录，显示登录弹窗
-  if (!authStatus) {
-    showLoginModal.value = true;
-  }
 };
 
 // 处理登录成功
@@ -285,22 +280,38 @@ onUnmounted(() => {
   <div class="home">
     <!-- 顶部导航栏 -->
     <div class="top-nav">
-      <div class="nav-left">
-        <h1 class="site-title">书城</h1>
-      </div>
-      <div class="nav-right">
-        <template v-if="isAuthenticated">
-          <div class="user-info">
-            <span class="welcome">欢迎，{{ userInfo?.username }}</span>
-            <button class="logout-btn" @click="handleLogout">退出</button>
+      <div class="nav-container">
+        <div class="nav-left">
+          <h1 class="site-title">书城</h1>
+          
+          <!-- 搜索栏移到导航栏 -->
+          <div class="search-bar">
+            <input 
+              v-model="searchQuery"
+              type="text" 
+              placeholder="搜索图书" 
+              class="search-input"
+              @keyup.enter="handleSearch"
+            >
+            <button class="search-btn" @click="handleSearch">
+              <i class="search-icon">🔍</i>
+            </button>
           </div>
-        </template>
-        <template v-else>
-          <button class="login-trigger" @click="showLoginModal = true">
-            登录/注册
-          </button>
-        </template>
-        <CartIcon ref="cartIconRef" />
+        </div>
+        <div class="nav-right">
+          <template v-if="isAuthenticated">
+            <div class="user-info">
+              <span class="welcome">欢迎，{{ userInfo?.username }}</span>
+              <button class="logout-btn" @click="handleLogout">退出</button>
+            </div>
+          </template>
+          <template v-else>
+            <button class="login-trigger" @click="showLoginModal = true">
+              登录/注册
+            </button>
+          </template>
+          <CartIcon ref="cartIconRef" />
+        </div>
       </div>
     </div>
 
@@ -315,62 +326,21 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- 广播信息 -->
-    <div class="broadcast-container">
-      <div class="broadcast-icon">📢</div>
-      <div class="broadcast-content">
-        <transition name="slide-fade">
-          <div :key="currentBroadcastIndex" class="broadcast-message">
-            {{ broadcasts[currentBroadcastIndex] }}
-          </div>
-        </transition>
-      </div>
-    </div>
-
-    <!-- 轮播图 -->
-    <div class="carousel" @mouseenter="stopCarousel" @mouseleave="startCarousel">
-      <div class="carousel-container" :style="{ transform: 'translateX(' + (-currentCarouselIndex * 100) + '%)' }">
-        <div v-for="item in carouselItems" :key="item.id" class="carousel-item">
-          <img 
-            :src="item.image" 
-            :alt="item.title" 
-            class="carousel-image"
-            @error="(e) => handleImageError(e, 'carousel')"
-            loading="lazy"
-          >
-          <div class="carousel-content">
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.description }}</p>
-          </div>
+    <div class="main-container">
+      <!-- 广播信息 -->
+      <div class="broadcast-container">
+        <div class="broadcast-icon">📢</div>
+        <div class="broadcast-content">
+          <transition name="slide-fade">
+            <div :key="currentBroadcastIndex" class="broadcast-message">
+              {{ broadcasts[currentBroadcastIndex] }}
+            </div>
+          </transition>
         </div>
       </div>
-      <button class="carousel-btn prev" @click="prevSlide">❮</button>
-      <button class="carousel-btn next" @click="nextSlide">❯</button>
-      <div class="carousel-dots">
-        <span 
-          v-for="(_, index) in carouselItems" 
-          :key="index"
-          :class="['dot', { active: index === currentCarouselIndex }]"
-          @click="setSlide(index)"
-        ></span>
-      </div>
-    </div>
-
-    <!-- 顶部搜索和分类导航 -->
-    <div class="header">
-      <div class="search-bar">
-        <input 
-          v-model="searchQuery"
-          type="text" 
-          placeholder="搜索图书" 
-          class="search-input"
-          @keyup.enter="handleSearch"
-        >
-        <button class="search-btn" @click="handleSearch">
-          <i class="search-icon">🔍</i>
-        </button>
-      </div>
-      <div class="category-tabs">
+      
+      <!-- 分类导航 -->
+      <div class="category-navigation">
         <div 
           v-for="category in categories" 
           :key="category.id"
@@ -381,116 +351,145 @@ onUnmounted(() => {
           {{ category.name }}
         </div>
       </div>
-    </div>
 
-    <!-- 主要内容区 -->
-    <div class="main-content">
-      <!-- 左侧推荐区 -->
-      <div class="side-content">
-        <div class="section-title">热门推荐</div>
-        <div v-if="recommendedBooks.length === 0" class="empty-state">
-          暂无推荐图书
-        </div>
-        <div class="recommended-list">
-          <div 
-            v-for="book in recommendedBooks" 
-            :key="book.id" 
-            class="recommended-item"
-          >
+      <!-- 轮播图 -->
+      <div class="carousel" @mouseenter="stopCarousel" @mouseleave="startCarousel">
+        <div class="carousel-container" :style="{ transform: 'translateX(' + (-currentCarouselIndex * 100) + '%)' }">
+          <div v-for="item in carouselItems" :key="item.id" class="carousel-item">
             <img 
-              :src="book.cover"
-              :alt="book.title" 
-              class="book-cover" 
+              :src="item.image" 
+              :alt="item.title" 
+              class="carousel-image"
+              @error="(e) => handleImageError(e, 'carousel')"
               loading="lazy"
-              @error="(e) => handleImageError(e, 'book')"
             >
-            <div class="book-info">
-              <div class="book-title">{{ book.title }}</div>
-              <div class="book-rating">
-                <span class="stars">★★★★★</span>
-                <span class="score">{{ book.rating }}</span>
-              </div>
-              <div class="book-price">¥{{ book.price }}</div>
+            <div class="carousel-content">
+              <h3>{{ item.title }}</h3>
+              <p>{{ item.description }}</p>
             </div>
           </div>
+        </div>
+        <button class="carousel-btn prev" @click="prevSlide">❮</button>
+        <button class="carousel-btn next" @click="nextSlide">❯</button>
+        <div class="carousel-dots">
+          <span 
+            v-for="(_, index) in carouselItems" 
+            :key="index"
+            :class="['dot', { active: index === currentCarouselIndex }]"
+            @click="setSlide(index)"
+          ></span>
         </div>
       </div>
 
-      <!-- 右侧主要商品展示区 -->
-      <div class="main-products">
-        <div class="section-title">精选图书</div>
-        <div v-if="loading" class="loading-spinner">
-          <div class="spinner"></div>
-        </div>
-        <div v-else-if="products.length === 0" class="empty-state">
-          暂无图书数据
-        </div>
-        <div v-else>
-          <div class="product-grid">
+      <!-- 主要内容区 -->
+      <div class="content-wrapper">
+        <!-- 左侧推荐区 -->
+        <div class="side-content">
+          <div class="section-title">热门推荐</div>
+          <div v-if="recommendedBooks.length === 0" class="empty-state">
+            暂无推荐图书
+          </div>
+          <div class="recommended-list">
             <div 
-              v-for="product in products" 
-              :key="product.id" 
-              class="product-card"
-              @click="handleProductClick(product)"
+              v-for="book in recommendedBooks" 
+              :key="book.id" 
+              class="recommended-item"
             >
-              <div class="product-image">
-                <img 
-                  :src="product.cover"
-                  :alt="product.title" 
-                  loading="lazy"
-                  @error="(e) => handleImageError(e, 'product')"
-                >
-              </div>
-              <div class="product-details">
-                <h4 class="product-title">{{ product.title }}</h4>
-                <p class="product-author">{{ product.author }}</p>
-                <div class="product-rating">
+              <img 
+                :src="book.cover"
+                :alt="book.title" 
+                class="book-cover" 
+                loading="lazy"
+                @error="(e) => handleImageError(e, 'book')"
+              >
+              <div class="book-info">
+                <div class="book-title">{{ book.title }}</div>
+                <div class="book-rating">
                   <span class="stars">★★★★★</span>
-                  <span class="score">{{ product.rating }}</span>
-                  <span class="sales">{{ product.sales }}人已购</span>
+                  <span class="score">{{ book.rating }}</span>
                 </div>
-                <div class="product-bottom">
-                  <span class="price">¥{{ product.price }}</span>
-                  <button class="add-cart-btn" @click.stop="handleAddToCart(product)">
-                    加入购物车
-                  </button>
-                </div>
+                <div class="book-price">¥{{ book.price }}</div>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- 分页器 -->
-          <div class="pagination" v-if="total > pageSize">
-            <button 
-              class="page-btn"
-              :disabled="currentPage === 1"
-              @click="handlePageChange(currentPage - 1)"
-            >
-              上一页
-            </button>
-            <div class="page-numbers">
-              <span 
-                v-for="page in pageNumbers" 
-                :key="page"
-                :class="['page-number', { active: currentPage === page }]"
-                @click="handlePageChange(page)"
+        <!-- 右侧主要商品展示区 -->
+        <div class="main-products">
+          <div class="section-title">精选图书</div>
+          <div v-if="loading" class="loading-spinner">
+            <div class="spinner"></div>
+          </div>
+          <div v-else-if="products.length === 0" class="empty-state">
+            暂无图书数据
+          </div>
+          <div v-else>
+            <div class="product-grid">
+              <div 
+                v-for="product in products" 
+                :key="product.id" 
+                class="product-card"
+                @click="handleProductClick(product)"
               >
-                {{ page }}
-              </span>
+                <div class="product-image">
+                  <img 
+                    :src="product.cover"
+                    :alt="product.title" 
+                    loading="lazy"
+                    @error="(e) => handleImageError(e, 'product')"
+                  >
+                </div>
+                <div class="product-details">
+                  <h4 class="product-title">{{ product.title }}</h4>
+                  <p class="product-author">{{ product.author }}</p>
+                  <div class="product-rating">
+                    <span class="stars">★★★★★</span>
+                    <span class="score">{{ product.rating }}</span>
+                    <span class="sales">{{ product.sales }}人已购</span>
+                  </div>
+                  <div class="product-bottom">
+                    <span class="price">¥{{ product.price }}</span>
+                    <button class="add-cart-btn" @click.stop="handleAddToCart(product)">
+                      加入购物车
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button 
-              class="page-btn"
-              :disabled="currentPage >= Math.ceil(total / pageSize)"
-              @click="handlePageChange(currentPage + 1)"
-            >
-              下一页
-            </button>
+
+            <!-- 分页器 -->
+            <div class="pagination" v-if="total > pageSize">
+              <button 
+                class="page-btn"
+                :disabled="currentPage === 1"
+                @click="handlePageChange(currentPage - 1)"
+              >
+                上一页
+              </button>
+              <div class="page-numbers">
+                <span 
+                  v-for="page in pageNumbers" 
+                  :key="page"
+                  :class="['page-number', { active: currentPage === page }]"
+                  @click="handlePageChange(page)"
+                >
+                  {{ page }}
+                </span>
+              </div>
+              <button 
+                class="page-btn"
+                :disabled="currentPage >= Math.ceil(total / pageSize)"
+                @click="handlePageChange(currentPage + 1)"
+              >
+                下一页
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 购物车图标和消息提示 -->
+    <!-- 购物车消息提示 -->
     <div v-if="showCartMessage" class="cart-message" :class="{ 'show': showCartMessage }">
       {{ cartMessage }}
     </div>
@@ -499,10 +498,14 @@ onUnmounted(() => {
 
 <style scoped>
 .home {
-  padding-top: 80px; /* 为顶部导航栏留出空间 */
-  padding: 20px;
+  margin: 0 auto;
+  background-color: #f5f7fa;
+}
+
+.main-container {
   max-width: 1400px;
   margin: 0 auto;
+  padding: 80px 20px 20px;
 }
 
 .top-nav {
@@ -511,18 +514,25 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 60px;
-  background: white;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  z-index: 100;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 100%;
   padding: 0 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  z-index: 100;
 }
 
 .nav-left {
   display: flex;
   align-items: center;
+  gap: 30px;
 }
 
 .site-title {
@@ -530,6 +540,41 @@ onUnmounted(() => {
   font-weight: bold;
   color: #4CAF50;
   margin: 0;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  width: 300px;
+  padding: 8px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+.search-btn {
+  padding: 0 15px;
+  height: 36px;
+  background: #4CAF50;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+  background: #45a049;
 }
 
 .nav-right {
@@ -614,58 +659,30 @@ onUnmounted(() => {
   color: #333;
 }
 
-.header {
-  margin-bottom: 20px;
-}
-
-.search-bar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 15px;
-}
-
-.search-input {
-  width: 400px;
-  padding: 10px 15px;
-  border: 2px solid #4CAF50;
-  border-radius: 4px 0 0 4px;
-  font-size: 16px;
-  outline: none;
-}
-
-.search-btn {
-  padding: 0 20px;
-  background: #4CAF50;
-  border: none;
-  border-radius: 0 4px 4px 0;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.search-btn:hover {
-  background: #45a049;
-}
-
-.category-tabs {
+.category-navigation {
   display: flex;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
+  padding: 15px 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .category-tab {
-  padding: 8px 16px;
+  padding: 10px 20px;
   border-radius: 20px;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
   align-items: center;
   gap: 5px;
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  white-space: nowrap;
 }
 
 .category-tab:hover {
-  background: #f5f5f5;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
 }
 
 .category-tab.active {
@@ -673,10 +690,15 @@ onUnmounted(() => {
   color: white;
 }
 
-.main-content {
+.category-icon {
+  font-size: 18px;
+}
+
+.content-wrapper {
   display: grid;
-  grid-template-columns: 250px 1fr;
-  gap: 20px;
+  grid-template-columns: 300px 1fr;
+  gap: 25px;
+  margin-top: 25px;
 }
 
 .section-title {
@@ -685,13 +707,15 @@ onUnmounted(() => {
   margin-bottom: 15px;
   padding-bottom: 10px;
   border-bottom: 2px solid #4CAF50;
+  color: #2c3e50;
 }
 
 .side-content {
   background: white;
   border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  height: fit-content;
 }
 
 .recommended-list {
@@ -702,15 +726,18 @@ onUnmounted(() => {
 
 .recommended-item {
   display: flex;
-  gap: 10px;
-  padding: 10px;
-  border-radius: 4px;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
   transition: all 0.3s;
   cursor: pointer;
+  border: 1px solid transparent;
 }
 
 .recommended-item:hover {
-  background: #f5f5f5;
+  background: #f9f9f9;
+  border-color: #e0e0e0;
+  transform: translateY(-2px);
 }
 
 .book-cover {
@@ -720,6 +747,11 @@ onUnmounted(() => {
   border-radius: 4px;
   background-color: #f5f5f5;
   border: 1px solid #eee;
+  transition: transform 0.3s;
+}
+
+.recommended-item:hover .book-cover {
+  transform: scale(1.05);
 }
 
 .book-info {
@@ -734,12 +766,16 @@ onUnmounted(() => {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  font-weight: 500;
 }
 
 .book-rating {
   color: #ffd700;
   font-size: 12px;
   margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .book-price {
@@ -751,14 +787,14 @@ onUnmounted(() => {
   background: white;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 25px;
+  margin-bottom: 25px;
 }
 
 .product-card {
@@ -766,15 +802,18 @@ onUnmounted(() => {
   overflow: hidden;
   transition: all 0.3s;
   cursor: pointer;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid #f0f0f0;
 }
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 15px rgba(0,0,0,0.1);
 }
 
 .product-image {
-  height: 200px;
+  height: 220px;
   overflow: hidden;
 }
 
@@ -793,28 +832,29 @@ onUnmounted(() => {
 }
 
 .product-details {
-  padding: 12px;
+  padding: 15px;
 }
 
 .product-title {
-  margin: 0 0 5px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .product-author {
   color: #666;
   font-size: 14px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .product-rating {
   display: flex;
   align-items: center;
-  gap: 5px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 12px;
 }
 
 .stars {
@@ -839,17 +879,18 @@ onUnmounted(() => {
 }
 
 .add-cart-btn {
-  padding: 6px 12px;
+  padding: 8px 14px;
   background: #4CAF50;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s;
 }
 
 .add-cart-btn:hover {
   background: #45a049;
+  transform: translateY(-2px);
 }
 
 .pagination {
@@ -857,7 +898,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
+  margin-top: 30px;
 }
 
 .page-numbers {
@@ -866,18 +907,19 @@ onUnmounted(() => {
 }
 
 .page-number {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s;
+  background: #f5f5f5;
 }
 
 .page-number:hover {
-  background: #f5f5f5;
+  background: #e0e0e0;
 }
 
 .page-number.active {
@@ -886,7 +928,7 @@ onUnmounted(() => {
 }
 
 .page-btn {
-  padding: 6px 12px;
+  padding: 8px 16px;
   background: #4CAF50;
   color: white;
   border: none;
@@ -950,15 +992,14 @@ onUnmounted(() => {
 
 /* 广播样式 */
 .broadcast-container {
-  background: #fff8e1;
-  padding: 10px 20px;
-  margin: 20px auto;
+  background: linear-gradient(to right, #fff8e1, #fffde7);
+  padding: 12px 20px;
+  margin-bottom: 20px;
   border-radius: 8px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  max-width: 800px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  gap: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .broadcast-icon {
@@ -984,7 +1025,7 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   height: 400px;
-  margin: 20px 0;
+  margin-bottom: 25px;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -1015,14 +1056,15 @@ onUnmounted(() => {
   bottom: 0;
   left: 0;
   right: 0;
-  padding: 20px;
+  padding: 25px;
   background: linear-gradient(transparent, rgba(0,0,0,0.7));
   color: white;
 }
 
 .carousel-content h3 {
   margin: 0 0 10px 0;
-  font-size: 24px;
+  font-size: 28px;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
 }
 
 .carousel-content p {
@@ -1037,8 +1079,8 @@ onUnmounted(() => {
   transform: translateY(-50%);
   background: rgba(255,255,255,0.3);
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   color: white;
   font-size: 24px;
@@ -1047,10 +1089,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(2px);
 }
 
 .carousel-btn:hover {
   background: rgba(255,255,255,0.5);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .carousel-btn.prev {
@@ -1067,12 +1111,12 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   background: rgba(255,255,255,0.5);
   cursor: pointer;
@@ -1100,44 +1144,93 @@ onUnmounted(() => {
   opacity: 0;
 }
 
+@media (max-width: 1200px) {
+  .content-wrapper {
+    grid-template-columns: 250px 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .nav-left {
+    gap: 15px;
+  }
+  
+  .search-input {
+    width: 220px;
+  }
+}
+
 @media (max-width: 768px) {
-  .main-content {
+  .main-container {
+    padding: 70px 15px 15px;
+  }
+  
+  .content-wrapper {
     grid-template-columns: 1fr;
   }
-
+  
+  .nav-container {
+    flex-direction: column;
+    padding: 10px 15px;
+    height: auto;
+  }
+  
+  .top-nav {
+    height: auto;
+  }
+  
+  .nav-left, .nav-right {
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  
   .search-input {
     width: 100%;
   }
-
-  .category-tabs {
-    overflow-x: auto;
-    padding-bottom: 5px;
-  }
-
+  
   .category-tab {
-    white-space: nowrap;
+    padding: 8px 15px;
+    font-size: 14px;
   }
-
+  
   .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 15px;
   }
-
+  
   .carousel {
     height: 250px;
   }
-
+  
   .carousel-content h3 {
-    font-size: 20px;
+    font-size: 22px;
   }
-
+  
   .carousel-content p {
     font-size: 14px;
   }
-
+  
   .carousel-btn {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     font-size: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  
+  .product-image {
+    height: 180px;
+  }
+  
+  .carousel {
+    height: 200px;
   }
 }
 </style> 
