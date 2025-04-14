@@ -1,4 +1,5 @@
 import axios from 'axios';
+import request from '../../ajax/request';
 
 const api = axios.create({
   baseURL: '/api',
@@ -58,14 +59,19 @@ export const login = async (username, password) => {
 
 export const logout = async () => {
   try {
-    // 模拟API延迟
-    await new Promise(resolve => setTimeout(resolve, 300));
+    const response = await request({
+      url: '/api/auth/logout',
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
     
     // 清除本地存储的认证信息
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
-    return true;
+    return response.data;
   } catch (error) {
     console.error('退出登录失败:', error);
     throw error;

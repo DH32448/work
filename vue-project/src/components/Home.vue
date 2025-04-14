@@ -7,6 +7,8 @@ import { checkAuth, logout } from '../api/auth';
 import CartIcon from './CartIcon.vue';
 import Login from './Login.vue';
 
+const router = useRouter();
+
 // 搜索相关
 const searchQuery = ref('');
 const currentPage = ref(1);
@@ -238,8 +240,8 @@ const handleLogout = async () => {
     await logout();
     isAuthenticated.value = false;
     userInfo.value = null;
-    // 显示登录弹窗
-    showLoginModal.value = true;
+    // 跳转到登录页面
+    router.push('/login');
   } catch (error) {
     console.error('退出登录失败:', error);
   }

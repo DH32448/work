@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,13 +31,13 @@ import java.util.Arrays;
 
 @Configuration
 public class SecurityConfig {
-    
+
     @Resource
     private TokenService tokenService;
-    
+
     @Resource
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-    
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -47,6 +48,10 @@ public class SecurityConfig {
                         .loginProcessingUrl("/api/auth/login")
                         .successHandler(this::onAuthenticationSuccess)
                         .failureHandler(this::onAuthenticationFailure)
+                        .permitAll())
+                .logout(conf -> conf
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessHandler(this::onLogoutSuccess)
                         .permitAll())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(conf -> conf
@@ -71,7 +76,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-    
+
     public void onAuthenticationSuccess(HttpServletRequest request,
                                       HttpServletResponse response,
                                       Authentication authentication)
@@ -81,7 +86,7 @@ public class SecurityConfig {
         String token = tokenService.generateToken(authentication.getName());
         writer.write(RestBean.success(token).asJsonString());
     }
-    
+
     public void onAuthenticationFailure(HttpServletRequest request,
                                       HttpServletResponse response,
                                       AuthenticationException exception)
@@ -90,7 +95,7 @@ public class SecurityConfig {
         PrintWriter writer = response.getWriter();
         writer.write(RestBean.failure(401,exception.getMessage()).asJsonString());
     }
-    
+
     /**
      * 配置密码编码器
      */
@@ -98,9 +103,23 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
+    }
+    public void onLogoutSuccess(HttpServletRequest request,
+                              HttpServletResponse response,
+                              Authentication authentication)
+            throws IOException {
+        response.setContentType("application/json;charset=utf-8");
+        PrintWriter writer = response.getWriter();
+        
+        if (authentication != null) {
+            // 从Redis中删除token
+            tokenService.invalidateToken(authentication.getName());
+        }
+        System.out.println("退出");
+        writer.write(RestBean.success("登出成功").asJsonString());
     }
 }
