@@ -306,7 +306,10 @@ onUnmounted(() => {
     <div v-if="showLoginModal" class="modal-overlay" @click.self="showLoginModal = false">
       <div class="modal-content">
         <button class="close-btn" @click="showLoginModal = false">&times;</button>
-        <Login @login-success="handleLoginSuccess" />
+        <Login 
+          @login-success="handleLoginSuccess" 
+          @close="showLoginModal = false"
+        />
       </div>
     </div>
 

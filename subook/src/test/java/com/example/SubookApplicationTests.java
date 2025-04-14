@@ -6,8 +6,11 @@ import com.example.service.AccountDetailsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.annotation.Resource;
 import javax.xml.crypto.Data;
 import java.util.UUID;
 
@@ -17,6 +20,8 @@ class SubookApplicationTests {
     AccountDetailsMapper detailsMapper;
     @Autowired
     PasswordEncoder encoder;
+    @Resource
+    JavaMailSender sender;
 
     @Test
     void contextLoads() {
@@ -28,6 +33,15 @@ class SubookApplicationTests {
         details.setPassword(encoder.encode("123456"));
         int insert = detailsMapper.insert(details);
         System.out.println(insert);
+    }
+    @Test
+    void mail(){
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setSubject("恭喜你！中大奖了");
+        message.setText("你中尼玛！！！");
+        message.setTo("dh32448@163.com");
+        message.setFrom("x1815097512@163.com");
+        sender.send(message);
     }
 
 }
