@@ -3,11 +3,13 @@ package com.example.service.impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.AccountInfo;
+import com.example.entity.dto.AccountInfoDTO;
 import com.example.entity.vo.RestBean;
 import com.example.mapper.AccountInfoMapper;
 import com.example.service.AccountDetailsService;
 import com.example.service.AccountInfoService;
 import org.springframework.stereotype.Service;
+import java.util.Base64;
 
 import javax.annotation.Resource;
 @Service
@@ -26,6 +28,9 @@ public class AccountInfoServiceImpl extends ServiceImpl<AccountInfoMapper, Accou
                         .one().getId())
                 .one();
         if (accountInfo == null) return RestBean.failure(404,"用户信息不存在").asJsonString();
-         else return RestBean.success(accountInfo).asJsonString();
+        
+        // 转换为包含Base64图片的DTO
+        AccountInfoDTO infoDTO = AccountInfoDTO.fromAccountInfo(accountInfo);
+        return RestBean.success(infoDTO).asJsonString();
     }
 }
