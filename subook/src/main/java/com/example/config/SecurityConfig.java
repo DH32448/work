@@ -52,7 +52,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/api/test/**","/api/auth/**","/api/adm/**").permitAll()
+                        .antMatchers("/api/test/**","/api/adm/**","/api/auth/**").permitAll()
+//                        .antMatchers("/api/auth/**").hasRole("USER")
                         .anyRequest().authenticated())
                 .formLogin(conf -> conf
                         .loginProcessingUrl("/api/auth/login")

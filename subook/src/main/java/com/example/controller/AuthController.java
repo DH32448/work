@@ -28,7 +28,7 @@ public class AuthController {
         return accountDetailsService.registerAccountUser(username,eamil,code,password,phone);
     }
     @GetMapping("/info")
-    public String info(@RequestParam(value = "aid",required = true)int aid){
-        return infoService.info(aid);
+    public String info(@RequestParam(value = "info",required = true)String phoneOrEmail){
+        return infoService.info(phoneOrEmail);
     }
 }
