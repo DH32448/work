@@ -4,9 +4,9 @@ import { ElMessage } from 'element-plus'
 
 // 创建 axios 实例
 const service = axios.create({
-  baseURL: 'http://localhost:8080', // 基础URL
-  timeout: 5000 // 请求超时时间
-})
+  baseURL: 'http://localhost:8080', // 保持基础URL，但确保前端API路径与后端匹配
+  timeout: 10000 // 请求超时时间
+});
 
 // 请求拦截器
 service.interceptors.request.use(
@@ -16,6 +16,10 @@ service.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
+    
+    // 打印请求信息以便调试
+    console.log('发送请求：', config.method, config.url, config.params || config.data);
+    
     return config
   },
   error => {
@@ -26,38 +30,74 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   response => {
+    // 打印响应信息以便调试
+    console.log('收到响应：', response.status, response.data);
+    
+    // 特殊处理登录请求的响应
+    if (response.config.url.includes('/api/auth/login')) {
+      // Spring Security默认情况下会设置名为Authorization的响应头
+      const authHeader = response.headers['authorization'];
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        localStorage.setItem('token', token);
+        
+        // 模拟一个标准响应格式供前端代码使用
+        if (!response.data || typeof response.data !== 'object') {
+          response.data = {
+            code: 0,
+            message: '登录成功',
+            data: token
+          };
+        } else if (!response.data.token && !response.data.data) {
+          response.data.data = token;
+        }
+      }
+    }
+    
     // 如果响应中包含新的 token，更新本地存储
     if (response.data?.token) {
-      localStorage.setItem('token', response.data.token)
+      localStorage.setItem('token', response.data.token);
     }
-    return response
+    
+    return response;
   },
   error => {
+    console.error('请求错误：', error.response?.status, error.response?.data || error.message);
+    
+    // 特殊处理登录请求的错误
+    if (error.config.url.includes('/api/auth/login')) {
+      if (error.response?.status === 401) {
+        ElMessage.error('用户名或密码错误');
+      } else {
+        ElMessage.error('登录请求失败，请稍后再试');
+      }
+    }
+    
     if (error.response) {
       switch (error.response.status) {
         case 401:
           // token 过期或无效，清除 token 并跳转到登录页
-          localStorage.removeItem('token')
-          localStorage.removeItem('user')
-          ElMessage.error('登录已过期，请重新登录')
-          router.push('/login')
-          break
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          ElMessage.error('登录已过期，请重新登录');
+          router.push('/login');
+          break;
         case 403:
           // 权限不足
-          ElMessage.error('权限不足')
-          router.push('/403')
-          break
+          ElMessage.error('权限不足');
+          router.push('/403');
+          break;
         case 500:
           // 服务器错误
-          ElMessage.error(error.response.data?.message || '服务器错误，请稍后重试')
-          break
+          ElMessage.error(error.response.data?.message || '服务器错误，请稍后重试');
+          break;
         default:
-          ElMessage.error(error.response.data?.message || '请求失败，请稍后重试')
+          ElMessage.error(error.response.data?.message || '请求失败，请稍后重试');
       }
     } else {
-      ElMessage.error('网络错误，请检查网络连接')
+      ElMessage.error('网络错误，请检查网络连接');
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 )
 

@@ -5,7 +5,7 @@ import { addToCart } from '../api/cart';
 import { useRouter } from 'vue-router';
 import { checkAuth, logout } from '../api/auth';
 import CartIcon from './CartIcon.vue';
-import Login from './Login.vue';
+import AuthManager from './AuthManager.vue';
 
 const router = useRouter();
 
@@ -93,7 +93,7 @@ const cartMessage = ref('');
 const showCartMessage = ref(false);
 
 // 登录相关
-const showLoginModal = ref(false);
+const showAuthModal = ref(false);
 const isAuthenticated = ref(false);
 const userInfo = ref(null);
 
@@ -226,7 +226,7 @@ const checkLoginStatus = async () => {
 const handleLoginSuccess = (user) => {
   isAuthenticated.value = true;
   userInfo.value = user;
-  showLoginModal.value = false;
+  showAuthModal.value = false;
 };
 
 // 处理退出登录
@@ -299,32 +299,24 @@ onUnmounted(() => {
           </div>
         </div>
         <div class="nav-right">
-          <template v-if="isAuthenticated">
-            <div class="user-info">
-              <span class="welcome">欢迎，{{ userInfo?.username }}</span>
-              <button class="logout-btn" @click="handleLogout">退出</button>
-            </div>
-          </template>
-          <template v-else>
-            <button class="login-trigger" @click="showLoginModal = true">
-              登录/注册
-            </button>
-          </template>
+          <div class="auth-buttons" v-if="!isAuthenticated">
+            <el-button type="primary" @click="showAuthModal = true">登录/注册</el-button>
+          </div>
+          <div class="user-info" v-else>
+            <span>欢迎，{{ userInfo?.username }}</span>
+            <el-button type="text" @click="handleLogout">退出</el-button>
+          </div>
           <CartIcon ref="cartIconRef" />
         </div>
       </div>
     </div>
 
-    <!-- 登录弹窗 -->
-    <div v-if="showLoginModal" class="modal-overlay" @click.self="showLoginModal = false">
-      <div class="modal-content">
-        <button class="close-btn" @click="showLoginModal = false">&times;</button>
-        <Login 
-          @login-success="handleLoginSuccess" 
-          @close="showLoginModal = false"
-        />
-      </div>
-    </div>
+    <!-- 登录/注册模态框 -->
+    <AuthManager 
+      v-if="showAuthModal"
+      @login-success="handleLoginSuccess"
+      @close="showAuthModal = false"
+    />
 
     <div class="main-container">
       <!-- 广播信息 -->
@@ -583,80 +575,17 @@ onUnmounted(() => {
   gap: 20px;
 }
 
+.auth-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
 .user-info {
+  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.welcome {
-  font-size: 14px;
-  color: #333;
-}
-
-.login-trigger, .logout-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s;
-}
-
-.login-trigger {
-  background: #4CAF50;
-  color: white;
-}
-
-.login-trigger:hover {
-  background: #45a049;
-}
-
-.logout-btn {
-  background: #f5f5f5;
-  color: #666;
-}
-
-.logout-btn:hover {
-  background: #e0e0e0;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  position: relative;
-  background: white;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 400px;
-  margin: 20px;
-}
-
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  color: #666;
-  cursor: pointer;
-  z-index: 1;
-}
-
-.close-btn:hover {
-  color: #333;
 }
 
 .category-navigation {

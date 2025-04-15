@@ -11,6 +11,12 @@ const router = createRouter({
       meta: { requiresAuth: false }
     },
     {
+      path: '/register',
+      name: 'register',
+      component: () => import('../src/components/Register.vue'),
+      meta: { requiresAuth: false }
+    },
+    {
       path: '/',
       name: 'home',
       component: () => import('../src/components/Home.vue'),
@@ -46,17 +52,20 @@ router.beforeEach((to, from, next) => {
     } else {
       // 验证 token 是否过期
       try {
-        const tokenData = JSON.parse(atob(token.split('.')[1]));
-        const currentTime = Date.now() / 1000;
-        
-        if (tokenData.exp < currentTime) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          ElMessage.error('登录已过期，请重新登录');
-          next('/login');
-        } else {
-          next();
+        // 对于JWT令牌，解析payload部分
+        if (token.split('.').length === 3) {
+          const tokenData = JSON.parse(atob(token.split('.')[1]));
+          const currentTime = Date.now() / 1000;
+          
+          if (tokenData.exp && tokenData.exp < currentTime) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            ElMessage.error('登录已过期，请重新登录');
+            next('/login');
+            return;
+          }
         }
+        next();
       } catch (error) {
         console.error('Token验证失败:', error);
         localStorage.removeItem('token');

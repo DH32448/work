@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus';
 import { User, Lock } from '@element-plus/icons-vue';
 import request from '../../ajax/request';
 
-const emit = defineEmits(['login-success', 'close']);
+const emit = defineEmits(['login-success', 'close', 'switch-to-register']);
 const router = useRouter();
 const loginFormRef = ref(null);
 
@@ -85,62 +85,58 @@ const handleKeyDown = (e) => {
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return;
+  if (loading.value) return; // 防止重复提交
 
   await loginFormRef.value.validate(async (valid) => {
     if (valid) {
       loading.value = true;
       errorMessage.value = '';
+      
+      console.log('登录请求数据:', {
+        username: formData.value.username,
+        password: '******' // 不打印真实密码
+      });
 
       try {
-        const params = new URLSearchParams();
-        params.append('username', formData.value.username);
-        params.append('password', formData.value.password);
-
-        const response = await request({
-          url: '/api/auth/login',
-          method: 'post',
-          data: params,
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        });
+        const response = await login(formData.value.username, formData.value.password);
+        console.log('登录响应:', response);
         
-        // 保存认证信息
-        if (response.data && response.data.data) {
-          // 显示登录成功的过渡动画
-          loginSuccess.value = true;
+        // 登录成功
+        loginSuccess.value = true;
+        
+        // 延迟保存数据和跳转，以便显示动画
+        setTimeout(() => {
+          // 确保token存储在localStorage中
+          if (response.token) {
+            localStorage.setItem('token', response.token);
+          }
           
-          // 延迟保存数据和跳转，以便显示动画
-          setTimeout(() => {
-            const token = response.data.data;
-            
-            // 确保token格式正确，可以被后续认证流程正确解析
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({
-              username: formData.value.username
-            }));
-            
-            // 如果选择了"记住我"，保存用户名和密码
-            if (formData.value.remember) {
-              localStorage.setItem('username', formData.value.username);
-              // 简单的加密方法（实际项目中应使用更安全的加密方式）
-              localStorage.setItem('password', btoa(formData.value.password));
-            } else {
-              localStorage.removeItem('username');
-              localStorage.removeItem('password');
-            }
-            
-            // 触发登录成功事件
-            emit('login-success', { username: formData.value.username });
-            ElMessage.success('登录成功');
-            router.push('/');
-          }, 800); // 动画持续时间
-        } else {
-          throw new Error('登录失败：服务器返回数据格式错误');
-        }
+          // 保存用户信息
+          if (response.user) {
+            localStorage.setItem('user', JSON.stringify(response.user));
+          }
+          
+          // 如果选择了"记住我"，保存用户名和密码
+          if (formData.value.remember) {
+            localStorage.setItem('username', formData.value.username);
+            localStorage.setItem('password', btoa(formData.value.password));
+          } else {
+            localStorage.removeItem('username');
+            localStorage.removeItem('password');
+          }
+          
+          // 触发登录成功事件
+          emit('login-success', response.user);
+          ElMessage.success('登录成功');
+          
+          // 获取重定向URL（如果有）
+          const redirect = router.currentRoute.value.query.redirect;
+          router.push(redirect || '/');
+        }, 800); // 动画持续时间
       } catch (error) {
+        console.error('登录详细错误:', error);
         loginSuccess.value = false;
-        errorMessage.value = error.response?.data?.message || '登录失败，请检查账号和密码';
+        errorMessage.value = error.message || '登录失败，请检查账号和密码';
         ElMessage.error(errorMessage.value);
       } finally {
         if (!loginSuccess.value) {
@@ -149,6 +145,11 @@ const handleLogin = async () => {
       }
     }
   });
+};
+
+// 切换到注册页面
+const switchToRegister = () => {
+  emit('switch-to-register');
 };
 </script>
 
@@ -208,7 +209,7 @@ const handleLogin = async () => {
       </el-form>
       <div class="login-options">
         <span>还没有账号？</span>
-        <a href="#" class="register-link">立即注册</a>
+        <a href="#" class="register-link" @click.prevent="switchToRegister">立即注册</a>
       </div>
     </div>
   </div>
