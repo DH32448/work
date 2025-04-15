@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 @TableName("accountinfo")
 public class AccountInfo {
     @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private int id;
 
     @TableField("aid")
-    private Long aid;
+    private int aid;
 
     @TableField(value = "name")
     private String name;

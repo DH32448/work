@@ -32,7 +32,7 @@ create table Carousel
     constraint Carousel_pk
         primary key (id)
 )
-    charset = utf8mb4_unicode_ci;
+    charset = utf8mb4;
 
 commit ;
 create table accountinfo
@@ -49,6 +49,6 @@ create table accountinfo
     constraint accountinfo_accountdetails_id_fk
         foreign key (aid) references accountdetails (id)
 )
-    comment '用户信息表' charset = utf8mb4_unicode_ci;
+    comment '用户信息表' charset = utf8mb4;
 
 commit ;

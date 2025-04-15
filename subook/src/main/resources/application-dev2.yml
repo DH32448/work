@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://10.1.26.249:3306/remoteRoot
+    url: jdbc:mysql://10.1.28.41:3306/remoteRoot
     username: remoteRoot
     password: R00t!20250409
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -10,7 +10,7 @@ spring:
     username: x1815097512@163.com
     password: JFTFLf9Q7aXdPvTU
   redis:
-    host: 10.1.26.249
+    host: 10.1.28.41
     port: 6379
     password: 
     database: 0
