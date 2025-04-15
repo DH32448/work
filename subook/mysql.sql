@@ -21,3 +21,17 @@ create unique index accountDetails_username_uindex
     on accountDetails (username);
 
 commit ;
+
+create table Carousel
+(
+    id      int auto_increment,
+    uuid    varchar(255) not null,
+    title   varchar(255) not null,
+    text    varchar(255) not null,
+    imgdata LONGBLOB     null,
+    constraint Carousel_pk
+        primary key (id)
+)
+    charset = utf8;
+
+commit ;
