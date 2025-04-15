@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
 
 @Data
 @NoArgsConstructor
@@ -35,6 +36,9 @@ public class AccountInfo {
     @TableField("registertime")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime registerTime;
+
+    @TableField("imgdata")
+    private byte[] imgData;
 
     @TableField("text")
     private String text;
