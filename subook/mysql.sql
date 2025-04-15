@@ -42,7 +42,7 @@ create table accountinfo
     name         varchar(255)      not null comment '姓名,未输入就随机一个',
     sex          enum ('男', '女') null comment '性别',
     age          int               null comment '年龄',
-    registertime TIME              not null comment '注册日期',
+    registertime DATETIME              not null comment '注册日期',
     text         varchar(255)      null comment '简介',
     constraint accountinfo_pk
         primary key (id),
