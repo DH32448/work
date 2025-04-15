@@ -1,6 +1,7 @@
 package com.example.service.impl;
 
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.dto.AccountDetails;
 import com.example.entity.vo.RestBean;
@@ -61,10 +62,13 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
         message.setSubject("你的验证码是：");
         message.setText("有效时间3分钟："+code);
         message.setFrom("x1815097512@163.com");
-        redisTemplate.opsForValue().set(email, code, 3, TimeUnit.MINUTES);
-        message.setTo(email);
-        sender.send(message);
-        return RestBean.success().asJsonString();
+//        if (StringUtils.equals(email, "%@%.com")) {
+            redisTemplate.opsForValue().set(email, code, 3, TimeUnit.MINUTES);
+            message.setTo(email);
+            sender.send(message);
+            System.out.println("验证码发送成功");
+            return RestBean.success().asJsonString();
+//        }else return RestBean.failure(400,"邮箱格式不正确").asJsonString();
     }
 
     @Override
