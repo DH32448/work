@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.service.AccountDetailsService;
+import com.example.service.AccountInfoService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -10,6 +11,8 @@ import javax.annotation.Resource;
 public class AuthController {
     @Resource
     AccountDetailsService accountDetailsService;
+    @Resource
+    AccountInfoService infoService;
     //获取验证码
     @GetMapping("/ask-code")
     public String code(@RequestParam(value = "email",required = true) String email){
@@ -23,5 +26,9 @@ public class AuthController {
                            @RequestParam(value = "password",required = true)String password
     ){
         return accountDetailsService.registerAccountUser(username,eamil,code,password,phone);
+    }
+    @GetMapping("/info")
+    public String info(@RequestParam(value = "aid",required = true)int aid){
+        return infoService.info(aid);
     }
 }

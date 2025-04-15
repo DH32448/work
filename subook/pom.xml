@@ -95,6 +95,11 @@
             <version>0.11.5</version>
             <scope>runtime</scope>
         </dependency>
+        <!-- LocalDateTime 需引入 Java 8 日期支持依赖 -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
