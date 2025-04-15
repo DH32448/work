@@ -52,7 +52,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(auth -> auth
-                        .antMatchers("/api/test/**","/api/auth/**").permitAll()
+                        .antMatchers("/api/test/**","/api/auth/**","/api/adm/**").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(conf -> conf
                         .loginProcessingUrl("/api/auth/login")

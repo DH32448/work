@@ -24,5 +24,4 @@ public class AuthController {
     ){
         return accountDetailsService.registerAccountUser(username,eamil,code,password,phone);
     }
-
 }
