@@ -9,7 +9,7 @@ create table accountDetails
     constraint accountDetails_pk
         primary key (id)
 )
-    collate = utf8mb3_bin;
+    collate = utf8mb4_unicode_ci;
 
 create index accountDetails_email_index
     on accountDetails (email);
@@ -32,6 +32,23 @@ create table Carousel
     constraint Carousel_pk
         primary key (id)
 )
-    charset = utf8;
+    charset = utf8mb4_unicode_ci;
+
+commit ;
+create table accountinfo
+(
+    id           int auto_increment,
+    aid          int               not null comment '关联账号表主键id',
+    name         varchar(255)      not null comment '姓名,未输入就随机一个',
+    sex          enum ('男', '女') null comment '性别',
+    age          int               null comment '年龄',
+    registertime TIME              not null comment '注册日期',
+    text         varchar(255)      null comment '简介',
+    constraint accountinfo_pk
+        primary key (id),
+    constraint accountinfo_accountdetails_id_fk
+        foreign key (aid) references accountdetails (id)
+)
+    comment '用户信息表' charset = utf8mb4_unicode_ci;
 
 commit ;
