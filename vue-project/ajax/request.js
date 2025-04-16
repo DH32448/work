@@ -5,7 +5,12 @@ import { ElMessage } from 'element-plus'
 // 创建 axios 实例
 const service = axios.create({
   baseURL: 'http://localhost:8080', // 保持基础URL，但确保前端API路径与后端匹配
-  timeout: 10000 // 请求超时时间
+  timeout: 10000, // 请求超时时间
+  withCredentials: true, // 允许跨域请求携带cookies
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
 });
 
 // 请求拦截器
@@ -17,12 +22,29 @@ service.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
     
+    // 处理不同类型的Content-Type
+    const contentType = config.headers['Content-Type'] || config.headers['content-type'];
+    
+    // 如果是application/x-www-form-urlencoded类型，确保数据正确转换
+    if (contentType && contentType.includes('application/x-www-form-urlencoded') && 
+        config.data && !(config.data instanceof URLSearchParams)) {
+      // 如果data是对象但不是URLSearchParams，转换为URLSearchParams
+      if (typeof config.data === 'object') {
+        const formData = new URLSearchParams();
+        Object.keys(config.data).forEach(key => {
+          formData.append(key, config.data[key]);
+        });
+        config.data = formData;
+      }
+    }
+    
     // 打印请求信息以便调试
     console.log('发送请求：', config.method, config.url, config.params || config.data);
     
     return config
   },
   error => {
+    console.error('请求拦截器错误:', error);
     return Promise.reject(error)
   }
 )
@@ -57,6 +79,33 @@ service.interceptors.response.use(
     // 如果响应中包含新的 token，更新本地存储
     if (response.data?.token) {
       localStorage.setItem('token', response.data.token);
+    }
+    
+    // 确保返回标准格式的响应数据
+    if (response.data && typeof response.data === 'string') {
+      try {
+        response.data = JSON.parse(response.data);
+      } catch (e) {
+        console.warn('响应数据不是有效的JSON格式:', response.data);
+        response.data = {
+          code: 200,
+          data: response.data,
+          message: '请求成功'
+        };
+      }
+    }
+    
+    // 标准化响应数据格式，确保前端各处可以统一处理
+    if (response.data && typeof response.data === 'object') {
+      // 如果响应中没有code字段，添加默认值
+      if (response.data.code === undefined) {
+        response.data.code = response.status === 200 ? 200 : 500;
+      }
+      
+      // 如果响应中没有message字段，添加默认值
+      if (response.data.message === undefined) {
+        response.data.message = response.status === 200 ? '请求成功' : '请求失败';
+      }
     }
     
     return response;

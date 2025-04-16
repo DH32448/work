@@ -26,39 +26,76 @@ const mockUsers = [
 
 export const getVerificationCode = async (email) => {
   try {
+    console.log('开始请求验证码，邮箱:', email);
     const response = await request({
       url: '/api/auth/ask-code',
       method: 'get',
       params: { email }
     });
     
-    return response.data;
+    console.log('验证码响应完整内容:', response);
+    
+    // 检查响应格式，确保正确解析
+    if (response.data && (response.data.code === 200 || response.data.code === 0)) {
+      return {
+        success: true,
+        message: response.data.data || response.data.message || '验证码发送成功'
+      };
+    } else {
+      console.warn('验证码响应格式异常:', response.data);
+      return {
+        success: false,
+        message: response.data?.message || '获取验证码失败'
+      };
+    }
   } catch (error) {
-    console.error('获取验证码失败:', error);
+    console.error('获取验证码失败，详细错误:', error);
+    console.error('错误响应:', error.response?.data);
+    console.error('错误状态:', error.response?.status);
     throw error;
   }
 };
 
 export const register = async (username, email, phone, code, password) => {
   try {
+    // 创建表单数据以匹配后端@RequestParam注解
+    const formData = new URLSearchParams();
+    formData.append('username', username);
+    formData.append('email', email);
+    formData.append('phone', phone);
+    formData.append('code', code);
+    formData.append('password', password);
+    
+    console.log('注册请求数据:', formData.toString());
+    
     const response = await request({
       url: '/api/auth/register',
       method: 'post',
-      params: {
-        username,
-        email,
-        phone,
-        code,
-        password
+      data: formData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
     
-    return {
-      success: response.data.code === 0,
-      message: response.data.message
-    };
+    console.log('注册响应完整内容:', response);
+    
+    // 检查响应格式，确保正确解析
+    if (response.data && (response.data.code === 200 || response.data.code === 0)) {
+      return {
+        success: true,
+        message: response.data.data || response.data.message || '注册成功'
+      };
+    } else {
+      console.warn('注册响应格式异常:', response.data);
+      return {
+        success: false,
+        message: response.data?.message || '注册失败'
+      };
+    }
   } catch (error) {
-    console.error('注册失败:', error);
+    console.error('注册失败详细错误:', error);
+    console.error('错误响应:', error.response?.data);
+    console.error('错误状态:', error.response?.status);
     throw error;
   }
 };

@@ -154,23 +154,29 @@ const handleGetCode = async () => {
     
     try {
       const response = await getVerificationCode(formData.value.email);
-      console.log('验证码响应:', response);
+      console.log('验证码完整响应:', response);
       
-      ElMessage.success('验证码已发送到您的邮箱');
-      
-      // 倒计时
-      let countdown = 60;
-      const timer = setInterval(() => {
-        countdown--;
-        codeButtonText.value = `${countdown}秒后重新获取`;
-        if (countdown <= 0) {
-          clearInterval(timer);
-          codeButtonText.value = '获取验证码';
-          codeDisabled.value = false;
-        }
-      }, 1000);
+      if (response && response.success) {
+        ElMessage.success(response.message || '验证码已发送到您的邮箱');
+        
+        // 倒计时
+        let countdown = 60;
+        const timer = setInterval(() => {
+          countdown--;
+          codeButtonText.value = `${countdown}秒后重新获取`;
+          if (countdown <= 0) {
+            clearInterval(timer);
+            codeButtonText.value = '获取验证码';
+            codeDisabled.value = false;
+          }
+        }, 1000);
+      } else {
+        throw new Error(response.message || '获取验证码失败');
+      }
     } catch (error) {
       console.error('获取验证码详细错误:', error);
+      console.error('错误响应数据:', error.response?.data);
+      console.error('错误状态码:', error.response?.status);
       ElMessage.error(error.response?.data?.message || error.message || '获取验证码失败');
       codeDisabled.value = false;
       codeButtonText.value = '获取验证码';
@@ -207,7 +213,7 @@ const handleRegister = async () => {
           formData.value.password
         );
         
-        console.log('注册响应:', response);
+        console.log('注册响应详情:', response);
         
         if (response && response.success) {
           // 显示注册成功的过渡动画
@@ -216,14 +222,27 @@ const handleRegister = async () => {
           // 延迟处理，以便显示动画
           setTimeout(() => {
             emit('register-success');
-            ElMessage.success('注册成功，请登录');
+            ElMessage.success(response.message || '注册成功，请登录');
+            // 清空表单
+            formData.value = {
+              username: '',
+              email: '',
+              phone: '',
+              code: '',
+              password: '',
+              confirmPassword: '',
+              agreement: false
+            };
+            // 跳转到登录页
             switchToLogin();
           }, 800);
         } else {
-          throw new Error(response.message || '注册失败');
+          throw new Error(response.message || '注册失败，请检查您的输入');
         }
       } catch (error) {
         console.error('注册详细错误:', error);
+        console.error('错误响应数据:', error.response?.data);
+        console.error('错误状态码:', error.response?.status);
         registerSuccess.value = false;
         errorMessage.value = error.response?.data?.message || error.message || '注册失败，请稍后再试';
         ElMessage.error(errorMessage.value);
