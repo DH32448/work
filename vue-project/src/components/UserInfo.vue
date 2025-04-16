@@ -68,6 +68,22 @@ const formattedSex = computed(() => {
   return '未设置';
 });
 
+// 计算属性：处理图片URL显示
+const imageUrl = computed(() => {
+  if (!userInfo.value || !userInfo.value.imgBase64 && !userInfo.value.imageBase64) return '';
+  
+  // 使用imageBase64或imgBase64，以兼容不同的后端返回格式
+  const imageData = userInfo.value.imageBase64 || userInfo.value.imgBase64;
+  
+  // 检查是否已经包含data:image前缀
+  if (imageData.startsWith('data:image')) {
+    return imageData;
+  }
+  
+  // 否则添加前缀
+  return `data:image/jpeg;base64,${imageData}`;
+});
+
 // 获取本地存储的用户信息
 const getUserFromLocalStorage = () => {
   const userString = localStorage.getItem('user');
@@ -177,12 +193,8 @@ const startEditing = () => {
   editForm.text = userInfo.value.text || '';
   editForm.image = null;
   
-  // 如果有头像图片且不是空字符串，设置预览URL
-  if (userInfo.value.imgBase64 && userInfo.value.imgBase64.length > 0) {
-    imagePreviewUrl.value = `data:image/jpeg;base64,${userInfo.value.imgBase64}`;
-  } else {
-    imagePreviewUrl.value = '';
-  }
+  // 使用计算属性处理图片URL
+  imagePreviewUrl.value = imageUrl.value;
   
   isEditing.value = true;
 };
@@ -191,9 +203,7 @@ const startEditing = () => {
 const cancelEditing = () => {
   isEditing.value = false;
   editForm.image = null;
-  imagePreviewUrl.value = userInfo.value.imgBase64 
-    ? `data:image/jpeg;base64,${userInfo.value.imgBase64}` 
-    : '';
+  imagePreviewUrl.value = imageUrl.value;
 };
 
 // 处理图片选择
@@ -228,11 +238,7 @@ const handleImageChange = (event) => {
 // 删除选择的图片
 const removeImage = () => {
   editForm.image = null;
-  if (userInfo.value.imgBase64 && userInfo.value.imgBase64.length > 0) {
-    imagePreviewUrl.value = `data:image/jpeg;base64,${userInfo.value.imgBase64}`;
-  } else {
-    imagePreviewUrl.value = '';
-  }
+  imagePreviewUrl.value = imageUrl.value;
 };
 
 // 保存用户信息
@@ -369,9 +375,9 @@ onMounted(() => {
             <span class="info-value">{{ userInfo.text || '未设置' }}</span>
           </div>
           
-          <div v-if="userInfo.imgBase64 && userInfo.imgBase64.length > 0" class="user-avatar">
+          <div v-if="imageUrl" class="user-avatar">
             <h3>用户头像</h3>
-            <img :src="`data:image/jpeg;base64,${userInfo.imgBase64}`" alt="用户头像" />
+            <img :src="imageUrl" alt="用户头像" />
           </div>
           
           <div class="action-buttons">
