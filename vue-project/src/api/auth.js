@@ -338,7 +338,9 @@ export const updateUserInfo = async (userInfo) => {
       formData.append('age', userInfo.age);
     }
     
+    // 处理性别字段，直接传递字符串形式
     if (userInfo.sex !== undefined) {
+      // 不做额外转换，保持原样传递，服务器端能处理中文性别
       formData.append('sex', userInfo.sex);
     }
     

@@ -40,7 +40,7 @@ create table accountinfo
     id           int auto_increment,
     aid          int               not null comment '关联账号表主键id',
     name         varchar(255)      not null comment '姓名,未输入就随机一个',
-    sex          enum ('男', '女') null comment '性别',
+    sex          enum ('男', '女','保密') null comment '性别',
     age          int               null comment '年龄',
     registertime DATETIME              not null comment '注册日期',
     text         varchar(255)      null comment '简介',

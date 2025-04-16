@@ -43,6 +43,31 @@ const formattedRegisterTime = computed(() => {
   return userInfo.value.registerTime;
 });
 
+// 计算属性：格式化性别
+const formattedSex = computed(() => {
+  if (!userInfo.value) return '未设置';
+  
+  // 处理数字格式
+  if (userInfo.value.sex === 0) return '男';
+  if (userInfo.value.sex === 1) return '女';
+  if (userInfo.value.sex === 2) return '保密';
+  
+  // 处理英文格式
+  if (typeof userInfo.value.sex === 'string') {
+    const sexLower = userInfo.value.sex.toLowerCase();
+    if (sexLower === 'male') return '男';
+    if (sexLower === 'female') return '女';
+    if (sexLower === 'other') return '保密';
+    
+    // 如果已经是中文，直接返回
+    if (['男', '女', '保密'].includes(userInfo.value.sex)) {
+      return userInfo.value.sex;
+    }
+  }
+  
+  return '未设置';
+});
+
 // 获取本地存储的用户信息
 const getUserFromLocalStorage = () => {
   const userString = localStorage.getItem('user');
@@ -125,12 +150,35 @@ const startEditing = () => {
   // 初始化编辑表单
   editForm.name = userInfo.value.name || '';
   editForm.age = userInfo.value.age || '';
-  editForm.sex = userInfo.value.sex || '';
+  
+  // 处理性别字段，统一转换为中文
+  if (typeof userInfo.value.sex === 'number') {
+    // 数字格式转换为文本
+    if (userInfo.value.sex === 0) editForm.sex = '男';
+    else if (userInfo.value.sex === 1) editForm.sex = '女';
+    else if (userInfo.value.sex === 2) editForm.sex = '保密';
+    else editForm.sex = '';
+  } else if (typeof userInfo.value.sex === 'string') {
+    // 处理各种格式的字符串
+    const sexLower = userInfo.value.sex.toLowerCase();
+    if (sexLower === 'male') editForm.sex = '男';
+    else if (sexLower === 'female') editForm.sex = '女';
+    else if (sexLower === 'other') editForm.sex = '保密';
+    // 如果已经是中文，直接使用
+    else if (['男', '女', '保密'].includes(userInfo.value.sex)) {
+      editForm.sex = userInfo.value.sex;
+    } else {
+      editForm.sex = '';
+    }
+  } else {
+    editForm.sex = '';
+  }
+  
   editForm.text = userInfo.value.text || '';
   editForm.image = null;
   
-  // 如果有头像图片，设置预览URL
-  if (userInfo.value.imgBase64) {
+  // 如果有头像图片且不是空字符串，设置预览URL
+  if (userInfo.value.imgBase64 && userInfo.value.imgBase64.length > 0) {
     imagePreviewUrl.value = `data:image/jpeg;base64,${userInfo.value.imgBase64}`;
   } else {
     imagePreviewUrl.value = '';
@@ -180,7 +228,7 @@ const handleImageChange = (event) => {
 // 删除选择的图片
 const removeImage = () => {
   editForm.image = null;
-  if (userInfo.value.imgBase64) {
+  if (userInfo.value.imgBase64 && userInfo.value.imgBase64.length > 0) {
     imagePreviewUrl.value = `data:image/jpeg;base64,${userInfo.value.imgBase64}`;
   } else {
     imagePreviewUrl.value = '';
@@ -191,6 +239,11 @@ const removeImage = () => {
 const saveUserInfo = async () => {
   if (!userInfo.value || !userInfo.value.aid) {
     ElMessage.error('无法获取用户账号ID，无法更新信息');
+    return;
+  }
+  
+  // 验证和清理表单数据
+  if (!validateFormContent()) {
     return;
   }
   
@@ -226,6 +279,30 @@ const saveUserInfo = async () => {
   } finally {
     saveLoading.value = false;
   }
+};
+
+// 验证表单内容，过滤敏感词
+const validateFormContent = () => {
+  // 检查敏感词列表
+  const sensitiveWords = ['傻逼', '操', 'fuck', '垃圾', '废物'];
+  
+  // 清理文本内容
+  if (editForm.text) {
+    for (const word of sensitiveWords) {
+      if (editForm.text.includes(word)) {
+        ElMessage.warning(`个人简介包含不适当的词汇，请修改`);
+        return false;
+      }
+    }
+  }
+  
+  // 检查用户名是否合规
+  if (editForm.name && editForm.name.length > 20) {
+    ElMessage.warning('用户名不能超过20个字符');
+    return false;
+  }
+  
+  return true;
 };
 
 // 组件挂载时获取用户信息
@@ -277,7 +354,7 @@ onMounted(() => {
           </div>
           <div class="info-item">
             <span class="info-label">性别:</span>
-            <span class="info-value">{{ userInfo.sex || '未设置' }}</span>
+            <span class="info-value">{{ formattedSex }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">年龄:</span>
@@ -292,7 +369,7 @@ onMounted(() => {
             <span class="info-value">{{ userInfo.text || '未设置' }}</span>
           </div>
           
-          <div v-if="userInfo.imgBase64" class="user-avatar">
+          <div v-if="userInfo.imgBase64 && userInfo.imgBase64.length > 0" class="user-avatar">
             <h3>用户头像</h3>
             <img :src="`data:image/jpeg;base64,${userInfo.imgBase64}`" alt="用户头像" />
           </div>

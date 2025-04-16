@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.entity.AccountInfo;
 import com.example.entity.dto.AccountDetails;
+import com.example.entity.ot.SexEnum;
 import com.example.entity.vo.RestBean;
 import com.example.mapper.AccountDetailsMapper;
 import com.example.mapper.AccountInfoMapper;
@@ -37,44 +38,50 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
     private RedisTemplate<String, Object> redisTemplate;
     @Resource
     AccountInfoMapper infoMapper;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        AccountDetails account = this.findAccountByPhoneOrEmail(username);
-        System.out.println(account);
-        if(account == null)
-            throw new UsernameNotFoundException("用户名或密码错误");
-        return User
-                .withUsername(username)
-                .password(account.getPassword())
-                .roles(account.getRole())
-                .build();
+        try {
+            AccountDetails accountDetails = detailsMapper.selectOne(
+                    this.query().select("id", "phone", "email", "username", "password", "role")
+                            .eq("phone", username).or()
+                            .eq("email", username).getWrapper());
+            System.out.println(accountDetails);
+            if (accountDetails == null)
+                throw new UsernameNotFoundException("用户名或手机号不存在");
+            //id,username,password,accountNonExpired,accountNonLocked,credentialsNonLocked,enabled
+            return User.builder()
+                    .username(accountDetails.getId().toString())
+                    .password(accountDetails.getPassword())
+                    .roles(accountDetails.getRole()).build();
+        } catch (Exception e) {
+            throw new UsernameNotFoundException("查询错误，请查看邮箱和手机是否合法");
+        }
     }
-
 
     public AccountDetails findAccountByPhoneOrEmail(String text) {
-        return this.query()
-                .eq("phone", text).or()
-                .eq("email", text)
-                .one();
+        AccountDetails accountDetails = detailsMapper.selectOne(
+                this.query().select("id", "phone", "email", "username", "password", "role")
+                        .eq("phone", text).or()
+                        .eq("email", text).getWrapper());
+        System.out.println(accountDetails);
+        return accountDetails;
     }
-    //注册
-    //发送验证码
 
     public String getCode(String email){
-        System.out.println("验证码");
         Random random = new Random();
-        int code = random.nextInt(900000) + 100000;
+        int randomNumber = 10000 + random.nextInt(90000);
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setSubject("你的验证码是：");
-        message.setText("有效时间3分钟："+code);
+        message.setSubject("【宿书】您的验证码");
+        message.setText("尊敬的用户您好！\n\n您的验证码为: "+randomNumber+"\n\n有效时间为10分钟；\n\n如果不是您本人操作，请忽略此邮件。");
+        //收件人
+        message.setTo(email);
+        //发件人
         message.setFrom("x1815097512@163.com");
-//        if (StringUtils.equals(email, "%@%.com")) {
-            redisTemplate.opsForValue().set(email, code, 3, TimeUnit.MINUTES);
-            message.setTo(email);
-            sender.send(message);
-            System.out.println("验证码发送成功");
-            return RestBean.success("验证码发送成功").asJsonString();
-//        }else return RestBean.failure(400,"邮箱格式不正确").asJsonString();
+
+        sender.send(message);
+        redisTemplate.opsForValue().set(email, String.valueOf(randomNumber), 10, TimeUnit.MINUTES);
+        return RestBean.success().asJsonString();
     }
 
     @Override
@@ -104,6 +111,8 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
                     accountInfo.setAid(details.getId());
                     accountInfo.setName(String.valueOf(details.getUsername()));
                     accountInfo.setRegisterTime(LocalDateTime.now());
+                    // 设置默认性别为"保密"
+                    accountInfo.setSex(SexEnum.SECRET);
                     infoMapper.insert(accountInfo);
                     return RestBean.success("注册成功").asJsonString();
                 } else {
