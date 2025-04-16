@@ -2,4 +2,4 @@ spring:
   application:
     name: subook
   profiles:
-    active: dev2
+    active: dev

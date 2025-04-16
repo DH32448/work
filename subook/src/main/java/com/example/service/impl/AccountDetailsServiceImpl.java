@@ -3,9 +3,11 @@ package com.example.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.example.entity.AccountInfo;
 import com.example.entity.dto.AccountDetails;
 import com.example.entity.vo.RestBean;
 import com.example.mapper.AccountDetailsMapper;
+import com.example.mapper.AccountInfoMapper;
 import com.example.service.AccountDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,7 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -31,6 +35,8 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
     PasswordEncoder encoder;
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    AccountInfoMapper infoMapper;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         AccountDetails account = this.findAccountByPhoneOrEmail(username);
@@ -67,7 +73,7 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
             message.setTo(email);
             sender.send(message);
             System.out.println("验证码发送成功");
-            return RestBean.success().asJsonString();
+            return RestBean.success("验证码发送成功").asJsonString();
 //        }else return RestBean.failure(400,"邮箱格式不正确").asJsonString();
     }
 
@@ -93,6 +99,12 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
                 int insert = detailsMapper.insert(details);
                 if (insert > 0) {
                     redisTemplate.delete(email);
+                    //初始化info
+                    AccountInfo accountInfo = new AccountInfo();
+                    accountInfo.setAid(details.getId());
+                    accountInfo.setName(String.valueOf(UUID.randomUUID()));
+                    accountInfo.setRegisterTime(LocalDateTime.now());
+                    infoMapper.insert(accountInfo);
                     return RestBean.success("注册成功").asJsonString();
                 } else {
                     return RestBean.failure(400,"注册失败").asJsonString();

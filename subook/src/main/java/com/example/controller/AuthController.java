@@ -16,7 +16,9 @@ public class AuthController {
     //获取验证码
     @GetMapping("/ask-code")
     public String code(@RequestParam(value = "email",required = true) String email){
-        return accountDetailsService.getCode(email);
+        String code = accountDetailsService.getCode(email);
+        System.out.println(code);
+        return code;
     }
     @PostMapping("/register")
     public String register(@RequestParam(value = "username",required = true) String username,
@@ -25,7 +27,9 @@ public class AuthController {
                            @RequestParam(value = "code",required = true)String code,
                            @RequestParam(value = "password",required = true)String password
     ){
-        return accountDetailsService.registerAccountUser(username,eamil,code,password,phone);
+        String s = accountDetailsService.registerAccountUser(username, eamil, code, password, phone);
+        System.out.println(s);
+        return s;
     }
     @GetMapping("/info")
     public String info(@RequestParam(value = "info",required = true)String phoneOrEmail){
