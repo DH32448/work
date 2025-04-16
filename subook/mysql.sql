@@ -52,3 +52,7 @@ create table accountinfo
     comment '用户信息表' charset = utf8mb4;
 
 commit ;
+
+alter table accountinfo
+    add imgData longblob null;
+commit ;
