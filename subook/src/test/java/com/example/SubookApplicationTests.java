@@ -6,6 +6,7 @@ import com.example.entity.ot.SexEnum;
 import com.example.mapper.AccountDetailsMapper;
 import com.example.mapper.AccountInfoMapper;
 import com.example.service.AccountDetailsService;
+import com.example.service.AccountInfoService;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ class SubookApplicationTests {
     JavaMailSender sender;
     @Autowired
     AccountInfoMapper infoMapper;
+    @Autowired
+    AccountInfoService infoService;
+
 
     @Test
     void contextLoads() {
@@ -62,5 +66,29 @@ class SubookApplicationTests {
         message.setFrom("x1815097512@163.com");
         sender.send(message);
     }
-
+    
+    @Test
+    void setInfoMapperupdate(){
+        // 首先确认aid=18的记录存在
+        AccountInfo existingInfo = infoMapper.selectOne(
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<AccountInfo>()
+                .eq(AccountInfo::getAid, 18));
+        
+        if (existingInfo != null) {
+            System.out.println("找到记录，ID=" + existingInfo.getId() + ", aid=" + existingInfo.getAid());
+            
+            // 只更新年龄，不更新aid
+            AccountInfo accountInfo = new AccountInfo();
+            accountInfo.setAid(18); // 这里只是作为查询条件使用，不会被更新
+            accountInfo.setAge(99);
+            accountInfo.setSex(SexEnum.FEMALE);
+            accountInfo.setText("我是大傻逼");
+            
+            // 测试更新
+            String result = infoService.infoUpdate(accountInfo);
+            System.out.println("更新结果: " + result);
+        } else {
+            System.out.println("未找到aid=18的记录，请先创建测试数据");
+        }
+    }
 }

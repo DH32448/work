@@ -308,4 +308,77 @@ export const getUserInfo = async (phoneOrEmail) => {
     console.error('错误状态:', error.response?.status);
     throw error;
   }
+};
+
+/**
+ * 更新用户信息（包括头像）
+ * @param {Object} userInfo - 用户信息对象
+ * @param {number} userInfo.aid - 用户账号ID
+ * @param {string} [userInfo.name] - 用户名
+ * @param {number} [userInfo.age] - 年龄
+ * @param {string} [userInfo.sex] - 性别
+ * @param {string} [userInfo.text] - 个人简介
+ * @param {File} [userInfo.image] - 头像图片文件
+ * @returns {Promise<Object>} - 更新结果
+ */
+export const updateUserInfo = async (userInfo) => {
+  try {
+    console.log('开始更新用户信息:', userInfo);
+    
+    // 创建表单数据
+    const formData = new FormData();
+    formData.append('aid', userInfo.aid);
+    
+    // 仅添加存在的字段
+    if (userInfo.name !== undefined) {
+      formData.append('name', userInfo.name);
+    }
+    
+    if (userInfo.age !== undefined) {
+      formData.append('age', userInfo.age);
+    }
+    
+    if (userInfo.sex !== undefined) {
+      formData.append('sex', userInfo.sex);
+    }
+    
+    if (userInfo.text !== undefined) {
+      formData.append('text', userInfo.text);
+    }
+    
+    // 如果有图片文件，添加到表单
+    if (userInfo.image && userInfo.image instanceof File) {
+      formData.append('image', userInfo.image);
+    }
+    
+    const response = await request({
+      url: '/api/auth/update-info-with-image',
+      method: 'post',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    console.log('更新用户信息响应:', response);
+    
+    // 检查响应格式，确保正确解析
+    if (response.data && (response.data.code === 200 || response.data.code === 0)) {
+      return {
+        success: true,
+        message: response.data.data || response.data.message || '更新成功'
+      };
+    } else {
+      console.warn('更新用户信息响应格式异常:', response.data);
+      return {
+        success: false,
+        message: response.data?.message || '更新失败'
+      };
+    }
+  } catch (error) {
+    console.error('更新用户信息失败，详细错误:', error);
+    console.error('错误响应:', error.response?.data);
+    console.error('错误状态:', error.response?.status);
+    throw error;
+  }
 }; 
