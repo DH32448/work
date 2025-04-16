@@ -1,0 +1,198 @@
+/* 轮播图样式 */
+.banner-section {
+  margin-bottom: 30px;
+}
+
+.banner-item {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 24px;
+  border-radius: 8px;
+}
+
+.bg-color-1 {
+  background: linear-gradient(135deg, #409EFF 0%, #3a8ffe 100%);
+}
+
+.bg-color-2 {
+  background: linear-gradient(135deg, #67C23A 0%, #85ce61 100%);
+}
+
+.bg-color-3 {
+  background: linear-gradient(135deg, #E6A23C 0%, #ebb563 100%);
+}
+
+.bg-color-4 {
+  background: linear-gradient(135deg, #F56C6C 0%, #f78989 100%);
+}
+
+/* 分类导航 */
+.category-nav {
+  margin-bottom: 30px;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+.category-list {
+  display: flex;
+  padding: 10px 0;
+  gap: 15px;
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.category-item:hover {
+  background-color: #ecf5ff;
+  color: #409EFF;
+}
+
+.category-item .el-icon {
+  font-size: 24px;
+}
+
+/* 书籍部分 */
+.section-container {
+  margin-bottom: 40px;
+}
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.book-cover {
+  width: 100%;
+  height: 250px;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 0;
+}
+
+.book-title {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-author {
+  color: #909399;
+  font-size: 14px;
+  margin: 0 0 10px 0;
+}
+
+.book-price {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.current-price {
+  font-size: 18px;
+  font-weight: bold;
+  color: #F56C6C;
+}
+
+.original-price {
+  text-decoration: line-through;
+  color: #909399;
+  font-size: 14px;
+}
+
+.book-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+/* 特惠活动 */
+.promo-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.promo-card {
+  height: 100%;
+}
+
+.promo-content {
+  padding: 30px;
+  height: 100%;
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.bg-gradient-1 {
+  background: linear-gradient(135deg, #F56C6C 0%, #f78989 100%);
+}
+
+.bg-gradient-2 {
+  background: linear-gradient(135deg, #E6A23C 0%, #ebb563 100%);
+}
+
+.promo-icon {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+
+.promo-content h3 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+}
+
+.promo-content p {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  opacity: 0.9;
+}
+
+.promo-time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 8px 15px;
+  border-radius: 20px;
+} 

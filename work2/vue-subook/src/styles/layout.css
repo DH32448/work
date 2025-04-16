@@ -1,0 +1,142 @@
+/* 基本容器布局 */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.el-container {
+  min-height: 100vh;
+}
+
+/* 头部样式 */
+.el-header {
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo img {
+  height: 30px;
+}
+
+.logo h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  color: #409EFF;
+}
+
+/* 导航容器样式 */
+.navigation-container {
+  display: flex;
+  align-items: center;
+}
+
+/* 下拉菜单样式 */
+.el-dropdown-item .el-icon {
+  margin-right: 5px;
+}
+
+/* 用户头像样式 */
+.user-avatar-container {
+  margin-left: 20px;
+}
+
+.avatar-wrapper {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.avatar-wrapper:hover {
+  opacity: 0.8;
+}
+
+.avatar-wrapper .el-icon {
+  margin-left: 4px;
+  font-size: 12px;
+  transition: transform 0.3s ease;
+}
+
+.avatar-wrapper:hover .el-icon {
+  transform: rotate(180deg);
+}
+
+/* 主内容区域 */
+.el-main {
+  flex: 1;
+  padding: 20px;
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 页面内容容器 */
+.page-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 底部样式 */
+.el-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  color: #909399;
+  font-size: 14px;
+  border-top: 1px solid #e4e7ed;
+  padding: 0 20px;
+}
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
+}
+
+/* 响应式适配 */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 10px;
+  }
+  
+  .logo h1 {
+    font-size: 1.2rem;
+  }
+  
+  .user-avatar-container {
+    margin-left: 10px;
+  }
+  
+  .el-dropdown-menu {
+    max-width: 200px;
+  }
+} 

@@ -1,0 +1,29 @@
+.about-card {
+  max-width: 800px;
+  margin: 30px auto;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h2 {
+  margin: 0;
+  color: #303133;
+}
+
+.about-logo {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 15px;
+}
+
+.about-desc {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #606266;
+  text-align: center;
+  margin: 20px 0 30px;
+} 
