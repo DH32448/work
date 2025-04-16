@@ -132,7 +132,7 @@ export const login = async (username, password) => {
     }
     
     // 尝试解析token获取用户信息
-    let userData = { id: 0, username: username, role: 'user' };
+    let userData = { id: 0, username: username, role: 'user', email: '' };
     
     // 如果token是JWT格式，从中提取用户信息
     if (token.split('.').length === 3) {
@@ -141,11 +141,31 @@ export const login = async (username, password) => {
         userData = {
           id: tokenData.id || 0,
           username: tokenData.sub || username,
-          role: tokenData.role || tokenData.authorities || 'user'
+          role: tokenData.role || tokenData.authorities || 'user',
+          email: tokenData.email || ''
         };
       } catch (e) {
         console.warn('无法解析JWT token，使用默认用户信息', e);
       }
+    }
+    
+    // 保存用户基本信息到本地存储
+    localStorage.setItem('user', JSON.stringify(userData));
+    
+    // 尝试获取用户详细信息
+    try {
+      // 使用用户名作为参数获取用户详细信息
+      // 注意：如果后端要求使用邮箱或手机号，可能需要调整
+      const userInfoResponse = await getUserInfo(userData.email || username);
+      
+      if (userInfoResponse && userInfoResponse.success) {
+        console.log('成功获取到用户详细信息:', userInfoResponse.data);
+      } else {
+        console.warn('获取用户详细信息失败:', userInfoResponse?.message);
+      }
+    } catch (infoError) {
+      console.error('获取用户详细信息出错:', infoError);
+      // 这里我们不阻止登录流程，即使获取详细信息失败
     }
     
     return {
@@ -241,5 +261,51 @@ export const checkAuth = async () => {
       isAuthenticated: false,
       user: null
     };
+  }
+};
+
+/**
+ * 获取用户详细信息
+ * @param {string} phoneOrEmail - 用户的手机号或邮箱
+ * @returns {Promise<Object>} - 用户详细信息
+ */
+export const getUserInfo = async (phoneOrEmail) => {
+  try {
+    console.log('开始请求用户信息，账号:', phoneOrEmail);
+    
+    const response = await request({
+      url: '/api/auth/info',
+      method: 'get',
+      params: { info: phoneOrEmail }
+    });
+    
+    console.log('用户信息响应完整内容:', response);
+    
+    // 检查响应格式，确保正确解析
+    if (response.data && (response.data.code === 200 || response.data.code === 0)) {
+      // 存储用户详细信息到本地存储
+      if (response.data.data) {
+        const userInfo = response.data.data;
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      }
+      
+      return {
+        success: true,
+        data: response.data.data || {},
+        message: response.data.message || '获取用户信息成功'
+      };
+    } else {
+      console.warn('用户信息响应格式异常:', response.data);
+      return {
+        success: false,
+        data: null,
+        message: response.data?.message || '获取用户信息失败'
+      };
+    }
+  } catch (error) {
+    console.error('获取用户信息失败，详细错误:', error);
+    console.error('错误响应:', error.response?.data);
+    console.error('错误状态:', error.response?.status);
+    throw error;
   }
 }; 

@@ -102,7 +102,7 @@ public class AccountDetailsServiceImpl extends ServiceImpl<AccountDetailsMapper,
                     //初始化info
                     AccountInfo accountInfo = new AccountInfo();
                     accountInfo.setAid(details.getId());
-                    accountInfo.setName(String.valueOf(UUID.randomUUID()));
+                    accountInfo.setName(String.valueOf(details.getUsername()));
                     accountInfo.setRegisterTime(LocalDateTime.now());
                     infoMapper.insert(accountInfo);
                     return RestBean.success("注册成功").asJsonString();

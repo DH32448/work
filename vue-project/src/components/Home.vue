@@ -3,9 +3,10 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { getBooks, searchBooks, getBooksByCategory, getRecommendedBooks, getNewsItems } from '../api/books';
 import { addToCart } from '../api/cart';
 import { useRouter } from 'vue-router';
-import { checkAuth, logout } from '../api/auth';
+import { checkAuth, logout, getUserInfo } from '../api/auth';
 import CartIcon from './CartIcon.vue';
 import AuthManager from './AuthManager.vue';
+import UserInfo from './UserInfo.vue';
 
 const router = useRouter();
 
@@ -94,8 +95,10 @@ const showCartMessage = ref(false);
 
 // 登录相关
 const showAuthModal = ref(false);
+const showUserInfoModal = ref(false);
 const isAuthenticated = ref(false);
 const userInfo = ref(null);
+const userDetailInfo = ref(null);
 
 // 广播信息相关
 const broadcasts = ref([
@@ -220,6 +223,19 @@ const checkLoginStatus = async () => {
   const { isAuthenticated: authStatus, user } = await checkAuth();
   isAuthenticated.value = authStatus;
   userInfo.value = user;
+  
+  // 如果已登录，尝试获取用户详细信息
+  if (authStatus && user) {
+    try {
+      const identifier = user.email || user.username;
+      const response = await getUserInfo(identifier);
+      if (response && response.success) {
+        userDetailInfo.value = response.data;
+      }
+    } catch (error) {
+      console.error('获取用户详细信息失败:', error);
+    }
+  }
 };
 
 // 处理登录成功
@@ -264,6 +280,11 @@ const handleImageError = (event, type) => {
   }
 };
 
+// 处理查看用户信息
+const handleViewUserInfo = () => {
+  showUserInfoModal.value = true;
+};
+
 onMounted(() => {
   checkLoginStatus();
   fetchInitialData();
@@ -304,7 +325,17 @@ onUnmounted(() => {
           </div>
           <div class="user-info" v-else>
             <span>欢迎，{{ userInfo?.username }}</span>
-            <el-button type="text" @click="handleLogout">退出</el-button>
+            <el-dropdown>
+              <span class="el-dropdown-link">
+                个人中心 <i class="el-icon-arrow-down"></i>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="handleViewUserInfo">查看个人信息</el-dropdown-item>
+                  <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
           <CartIcon ref="cartIconRef" />
         </div>
@@ -482,9 +513,16 @@ onUnmounted(() => {
     </div>
 
     <!-- 购物车消息提示 -->
-    <div v-if="showCartMessage" class="cart-message" :class="{ 'show': showCartMessage }">
+    <div class="cart-message" v-show="showCartMessage">
       {{ cartMessage }}
     </div>
+
+    <!-- 用户信息模态框 -->
+    <UserInfo 
+      v-if="showUserInfoModal"
+      :visible="showUserInfoModal"
+      @close="showUserInfoModal = false"
+    />
   </div>
 </template>
 
