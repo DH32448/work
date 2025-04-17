@@ -1,0 +1,4 @@
+修改了AccountDetailsServiceImpl.loadUserByUsername方法，使其能够处理数字格式的用户ID查询
+在JwtUtils类中添加了针对用户ID生成令牌的专用方法
+在TokenService中添加了专门处理用户ID的令牌生成方法
+修改了SecurityConfig中的认证成功处理器，使用户ID正确生成令牌
